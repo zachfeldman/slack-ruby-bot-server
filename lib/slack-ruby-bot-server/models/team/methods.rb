@@ -9,16 +9,16 @@ module Methods
 
     scope :active, -> { where(active: true) }
 
-    validates_uniqueness_of :token, message: 'has already been used'
-    validates_presence_of :token
+    validates_uniqueness_of :bot_token, message: 'has already been used'
+    validates_presence_of :bot_token
     validates_presence_of :team_id
 
     def deactivate!
       update_attributes!(active: false)
     end
 
-    def activate!(token)
-      update_attributes!(active: true, token: token)
+    def activate!(bot_token)
+      update_attributes!(active: true, bot_token: bot_token)
     end
 
     def to_s
@@ -32,7 +32,7 @@ module Methods
     end
 
     def ping!
-      client = Slack::Web::Client.new(token: token)
+      client = Slack::Web::Client.new(token: bot_token)
       auth = client.auth_test
       {
         auth: auth,
@@ -43,8 +43,8 @@ module Methods
     def self.find_or_create_from_env!
       token = ENV['SLACK_API_TOKEN']
       return unless token
-      team = Team.where(token: token).first
-      team ||= Team.new(token: token)
+      team = Team.where(bot_token: token).first
+      team ||= Team.new(bot_token: token)
       info = Slack::Web::Client.new(token: token).team_info
       team.team_id = info['team']['id']
       team.name = info['team']['name']

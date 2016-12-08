@@ -1,9 +1,19 @@
 require_relative 'methods.rb'
 require 'active_record'
+require './app/models/team.rb'
 
 class Team < ActiveRecord::Base
 
   include Methods
+  include TeamAppMethods
+
+  def self.total_count
+    self.count
+  end
+
+  def token
+    bot_token
+  end
 
   def self.purge!
     # destroy teams inactive for two weeks

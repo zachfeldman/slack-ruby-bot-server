@@ -60,8 +60,11 @@ module SlackRubyBotServer
             t.string :team_id
             t.string :name
             t.string :domain
-            t.string :token
+            t.string :bot_id
+            t.string :bot_token
             t.boolean :active
+            t.integer :user_id
+            t.string :server_call_chain_id
             t.timestamps
           end
         end

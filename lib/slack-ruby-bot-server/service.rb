@@ -22,9 +22,13 @@ module SlackRubyBotServer
     end
 
     def create!(team)
-      run_callbacks :creating, team
-      start!(team)
-      run_callbacks :created, team
+      if team.server_call_chain_id == nil
+        run_callbacks :creating, team
+        start!(team)
+        run_callbacks :created, team
+      else
+        logger.error "Team instance already running. Please kill the current instance if you're trying to start a new one."
+      end
     end
 
     def start!(team)
@@ -49,6 +53,8 @@ module SlackRubyBotServer
       logger.info "Stopping team #{team}."
       run_callbacks :stopping, team
       team.server.stop! if team.server
+      team.server_call_chain_id = nil
+      team.save
       run_callbacks :stopped, team
     rescue StandardError => e
       run_callbacks :error, team, e
@@ -87,7 +93,12 @@ module SlackRubyBotServer
 
     def start_server!(team, server, wait = 1)
       team.server = server
-      server.start_async
+      before_start = Thread.list
+      process = server.start_async
+      after_start = Thread.list
+      current_thread = (after_start - before_start)[0]
+      team.server_call_chain_id = current_thread.call_chain_id
+      team.save
     rescue StandardError => e
       run_callbacks :error, team, e
       case e.message
@@ -95,7 +106,7 @@ module SlackRubyBotServer
         logger.error "#{team.name}: #{e.message}, team will be deactivated."
         deactivate!(team)
       else
-        logger.error "#{team.name}: #{e.message}, restarting in #{wait} second(s)."
+        logger.error "#{team.name}: #{e.message}, restarting in #{wait} second(s). #{e.response.inspect} #{e.exception} #{e.cause}"
         sleep(wait)
         start_server! team, server, [wait * 2, 60].min
       end

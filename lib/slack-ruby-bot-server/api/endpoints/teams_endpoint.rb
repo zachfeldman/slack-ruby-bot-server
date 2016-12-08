@@ -8,14 +8,6 @@ module SlackRubyBotServer
         helpers Helpers::PaginationParameters
 
         namespace :teams do
-          desc 'Get a team.'
-          params do
-            requires :id, type: String, desc: 'Team ID.'
-          end
-          get ':id' do
-            team = Team.find(params[:id]) || error!('Not Found', 404)
-            present team, with: Presenters::TeamPresenter
-          end
 
           desc 'Get all the teams.'
           params do
@@ -28,6 +20,16 @@ module SlackRubyBotServer
             teams = teams.active if params[:active]
             teams = paginate_and_sort_by_cursor(teams, default_sort_order: '-_id')
             present teams, with: Presenters::TeamsPresenter
+          end
+
+          desc 'Ensure a bot is running for all teams.'
+          params do
+            optional :active, type: Boolean, desc: 'Return active teams only.'
+          end
+          get 'activate' do
+            teams = Team.all.each do |team|
+              Service.instance.create!(team)
+            end
           end
 
           desc 'Create a team using an OAuth token.'
@@ -60,6 +62,21 @@ module SlackRubyBotServer
               )
             end
 
+            Service.instance.create!(team)
+            present team, with: Presenters::TeamPresenter
+          end
+
+
+          desc 'Get a team.'
+          params do
+            requires :id, type: String, desc: 'Team ID.'
+          end
+          get ':id' do
+            team = Team.where(team_id: params[:id]).first || error!('Not Found', 404)
+            present team, with: Presenters::TeamPresenter
+          end
+          get ':id/activate' do
+            team = Team.where(team_id: params[:id]).first || error!('Not Found', 404)
             Service.instance.create!(team)
             present team, with: Presenters::TeamPresenter
           end
