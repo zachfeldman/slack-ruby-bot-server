@@ -30,6 +30,8 @@ module SlackRubyBotServer
             teams = Team.all.each do |team|
               Service.instance.create!(team)
             end
+            content_type 'text/plain'
+            body "Teams online."
           end
 
           desc 'Create a team using an OAuth token.'
