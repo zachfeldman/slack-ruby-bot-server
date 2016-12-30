@@ -82,12 +82,12 @@ module SlackRubyBotServer
           params do
             requires :id, type: String, desc: 'Team ID.'
           end
-          get 'kill' do
+          get '/kill' do
             team = Team.where(team_id: params[:id]).first || error!('Not Found', 404)
             Service.instance.stop!(team)
             present team, with: Presenters::TeamPresenter
           end
-          get 'activate' do
+          get '/activate' do
             team = Team.where(team_id: params[:id]).first || error!('Not Found', 404)
             Service.instance.create!(team)
             present team, with: Presenters::TeamPresenter
