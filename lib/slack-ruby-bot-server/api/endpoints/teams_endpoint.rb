@@ -88,10 +88,15 @@ module SlackRubyBotServer
             present team, with: Presenters::TeamPresenter
           end
           get '/restart' do
+            puts params[:id]
             team = Team.where(team_id: params[:id]).first || error!('Not Found', 404)
+            puts team
             server = SlackRubyBotServer::Service.new.restart!(team, server)
-            Service.new.restart!(team, server)
-            present team, with: Presenters::TeamPresenter
+            puts server
+            Service.instance.restart!(team, server)
+            # present team, with: Presenters::TeamPresenter
+            content_type 'text/plain'
+            body "Team restarted."
           end
         end
       end
