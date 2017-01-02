@@ -26,7 +26,7 @@ module SlackRubyBotServer
           params do
             optional :active, type: Boolean, desc: 'Return active teams only.'
           end
-          get 'activate' do
+          get '/activate' do
             teams = Team.all.each do |team|
               Service.instance.create!(team)
             end
@@ -87,9 +87,10 @@ module SlackRubyBotServer
             Service.instance.stop!(team)
             present team, with: Presenters::TeamPresenter
           end
-          get '/activate' do
+          get '/restart' do
             team = Team.where(team_id: params[:id]).first || error!('Not Found', 404)
-            Service.instance.create!(team)
+            server = SlackRubyBotServer::Service.new.restart!(team, server)
+            Service.new.restart!(team, server)
             present team, with: Presenters::TeamPresenter
           end
         end

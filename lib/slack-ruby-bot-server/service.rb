@@ -22,6 +22,7 @@ module SlackRubyBotServer
     end
 
     def create!(team)
+      puts "Create team #{team.inspect}..."
       if team.server_call_chain_id == nil
         run_callbacks :creating, team
         start!(team)
