@@ -25,13 +25,16 @@ module SlackRubyBotServer
           desc 'Ensure a bot is running for all teams.'
           params do
             optional :active, type: Boolean, desc: 'Return active teams only.'
+            optional :token, type: String, desc: 'Token for access.'
           end
           get '/activate' do
-            teams = Team.all.each do |team|
-              Service.instance.create!(team)
+            if params[:token] == ENV['BOT_ACCESS_TOKEN']
+              teams = Team.all.each do |team|
+                Service.instance.create!(team)
+              end
+              content_type 'text/plain'
+              body "Teams online."
             end
-            content_type 'text/plain'
-            body "Teams online."
           end
 
           desc 'Create a team using an OAuth token.'
